@@ -134,8 +134,10 @@ local function parse_args(t)
         if not s then error("Expected integer/integer after --shard") end
         opts.shard = {initial = tonumber(i), step = tonumber(s)}
       elseif arg == "--version" then
-        io_write("LuaJIT test-suite runner v0.1\n")
+        io_write("LuaJIT test-suite runner v0.2\n")
         result = nil
+      elseif arg == "--list" then
+        opts.list = true
       elseif arg == "--help" then
         io_write("Usage: ", _G and _G.arg and _G.arg[-1] or "luajit", " ")
         io_write(own_file, " [flags] [tags] [root] [numbers]\n")
@@ -152,6 +154,7 @@ local function parse_args(t)
         io_write"  --shuffle=SEED\n"
         io_write"  --shard=INDEX/NUM_SHARDS\n"
         io_write"  --version\n"
+        io_write"  --list\n"
         io_write"  --help\n"
         result = nil
       else
@@ -176,8 +179,16 @@ local function parse_args(t)
   return result
 end
 
-local function scan_tests(path, opts)
+local function scan_tests(path, opts, skip, skipReason)
   if path:sub(-4, -4) == "." then
+    if opts.list then
+        if skip then
+            print("-" .. path .. " " .. skipReason)
+        else
+            print(path)
+        end
+        return
+    end
     local f = assert(io_open(path, "rb"))
     local contents = f:read"*a"
     f:close()
@@ -224,8 +235,10 @@ local function scan_tests(path, opts)
         end
         if want_these then
           result[i] = line
-          result[i+1] = scan_tests(path .. name, opts)
+          result[i+1] = scan_tests(path .. name, opts, skip, skipReason)
           i = i + 2
+        elseif opts.list then
+          scan_tests(path .. name, opts, true, line:sub(metaidx))
         end
       end
     end
@@ -408,6 +421,7 @@ end
 seal_globals()
 check_package_path()
 local test_tree = scan_tests(opts.root or own_dir or "", opts)
+if opts.list then return end
 local plan = append_tree_to_plan(test_tree, opts, {}, "")
 plan = mutate_plan(plan, opts)
 local all_good = execute_plan(plan, opts)

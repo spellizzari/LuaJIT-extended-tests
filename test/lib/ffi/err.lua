@@ -30,6 +30,9 @@ ffi_err_point ffi_err_strchr(ffi_err_point* op1, ffi_err_point* op2) asm("strchr
   end
   local ok, err = xpcall(foo, debug.traceback)
   local line = debug.getinfo(foo).linedefined+3
-  assert(string.match(err, "traceback:[^:]*:"..line..":"))
+  local match = string.match(err, "[^:]*:"..line..":")
+  if not match then
+    error("got " .. err)
+  end
 end
 

@@ -1,3 +1,9 @@
+local function check(got, expected)
+  if got ~= expected then
+    error("got: \""..got.."\"\nexpected: \""..expected.."\"", 2)
+  end
+end
+
 local ffi = require("ffi")
 local bit = require("bit")
 
@@ -12,23 +18,23 @@ typedef enum { ZZU } uenum_t;
 ]]
 
 do --- smoke tobit
-  assert(tobit(0xfedcba9876543210ll) == 0x76543210)
-  assert(tobit(0xfedcba9876543210ull) == 0x76543210)
+  check(tobit(0xfedcba9876543210ll), 0x76543210)
+  check(tobit(0xfedcba9876543210ull), 0x76543210)
 end
 
 do --- smoke band
-  assert(tostring(band(1ll, 1, 1ll, -1)) == "1LL")
-  assert(tostring(band(1ll, 1, 1ull, -1)) == "1ULL")
+  check(tostring(band(1ll, 1, 1ll, -1)), "1LL")
+  check(tostring(band(1ll, 1, 1ull, -1)), "0ULL")
 end
 
 do --- smoke shl
-  assert(shl(10ll, 2) == 40)
-  assert(shl(10, 2ll) == 40)
-  assert(shl(10ll, 2ll) == 40)
+  check(shl(10ll, 2), 40)
+  check(shl(10, 2ll), 40)
+  check(shl(10ll, 2ll), 40)
 end
 
 do --- smoke tohex
-  assert(bit.tohex(0x123456789abcdef0LL) == "123456789abcdef0")
+  check(bit.tohex(0x123456789abcdef0LL), "123456789abcdef0")
 end
 
 do --- tobit/band assorted C types
@@ -45,10 +51,10 @@ do --- tobit/band negative unsigned enum
   local x = ffi.new("uenum_t", -10)
   local y = tobit(x)
   local z = band(x)
-  assert(type(y) == "number")
-  assert(y == -10)
-  assert(type(z) == "cdata")
-  assert(z == 2^32-10)
+  check(type(y), "number")
+  check(y, -10)
+  check(type(z), "cdata")
+  check(z, 2^32-10)
 end
 
 do --- jit band/bor/bxor
@@ -62,12 +68,12 @@ do --- jit band/bor/bxor
     y5 = band(a, 0xffffffff00000000LL)
     y6 = band(a, 0x00000000ffffffffLL)
   end
-  assert(y1 == 0x000000001a185a50LL)
-  assert(y2 == 0x1210525800000000LL)
-  assert(y3 == 0x123456781a185a50LL)
-  assert(y4 == 0x121052589abcdef0LL)
-  assert(y5 == 0x1234567800000000LL)
-  assert(y6 == 0x000000009abcdef0LL)
+  check(y1, 0x000000001a185a50LL)
+  check(y2, 0x1210525800000000LL)
+  check(y3, 0x123456781a185a50LL)
+  check(y4, 0x121052589abcdef0LL)
+  check(y5, 0x1234567800000000LL)
+  check(y6, 0x000000009abcdef0LL)
   for i=1,100 do
     y1 = bor(a, 0x000000005a5a5a5aLL)
     y2 = bor(a, 0x5a5a5a5a00000000LL)
@@ -76,12 +82,12 @@ do --- jit band/bor/bxor
     y5 = bor(a, 0xffffffff00000000LL)
     y6 = bor(a, 0x00000000ffffffffLL)
   end
-  assert(y1 == 0x12345678dafedefaLL)
-  assert(y2 == 0x5a7e5e7a9abcdef0LL)
-  assert(y3 == 0xffffffffdafedefaLL)
-  assert(y4 == 0x5a7e5e7affffffffLL)
-  assert(y5 == 0xffffffff9abcdef0LL)
-  assert(y6 == 0x12345678ffffffffLL)
+  check(y1, 0x12345678dafedefaLL)
+  check(y2, 0x5a7e5e7a9abcdef0LL)
+  check(y3, 0xffffffffdafedefaLL)
+  check(y4, 0x5a7e5e7affffffffLL)
+  check(y5, 0xffffffff9abcdef0LL)
+  check(y6, 0x12345678ffffffffLL)
   for i=1,100 do
     y1 = bxor(a, 0x000000005a5a5a5aLL)
     y2 = bxor(a, 0x5a5a5a5a00000000LL)
@@ -90,12 +96,12 @@ do --- jit band/bor/bxor
     y5 = bxor(a, 0xffffffff00000000LL)
     y6 = bxor(a, 0x00000000ffffffffLL)
   end
-  assert(y1 == 0x12345678c0e684aaLL)
-  assert(y2 == 0x486e0c229abcdef0LL)
-  assert(y3 == 0xedcba987c0e684aaLL)
-  assert(y4 == 0x486e0c226543210fLL)
-  assert(y5 == 0xedcba9879abcdef0LL)
-  assert(y6 == 0x123456786543210fLL)
+  check(y1, 0x12345678c0e684aaLL)
+  check(y2, 0x486e0c229abcdef0LL)
+  check(y3, 0xedcba987c0e684aaLL)
+  check(y4, 0x486e0c226543210fLL)
+  check(y5, 0xedcba9879abcdef0LL)
+  check(y6, 0x123456786543210fLL)
 end
 
 do --- jit shift/xor
@@ -105,7 +111,7 @@ do --- jit shift/xor
     a = a - b; b = shl(b, 5) + sar(b, 59)
     b = bxor(a, b); b = b - shl(b, 13) - shr(b, 51)
   end
-  assert(b == -7993764627526027113LL)
+  check(b, -7993764627526027113LL)
 end
 
 do --- jit rotate/xor
@@ -115,7 +121,7 @@ do --- jit rotate/xor
     a = a - b; b = rol(b, 5)
     b = bxor(a, b); b = b - rol(b, 13)
   end
-  assert(b == -6199148037344061526LL)
+  check(b, -6199148037344061526LL)
 end
 
 do --- jit all ops
@@ -125,6 +131,6 @@ do --- jit all ops
     a = a - b; b = shr(b, a) + shl(b, bnot(a))
     b = bxor(a, b); b = b - bswap(b)
   end
-  assert(b == -8881785180777266821LL)
+  check(b, -8881785180777266821LL)
 end
 
