@@ -43,7 +43,7 @@ namespace tests
                 writer.Write("local __overflow={");
                 for (int i = 0; i < (1 << 17); i++)
                     writer.Write("{},");
-                writer.WriteLine("}");
+                writer.Write("};");
                 writer.Write(File.ReadAllText(testFilePath));
                 testFilePath = tempFilePath;
             }
