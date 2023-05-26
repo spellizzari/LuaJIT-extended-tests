@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "testRunner": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

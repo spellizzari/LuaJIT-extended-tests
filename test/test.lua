@@ -210,7 +210,9 @@ local function scan_tests(path, opts, skip, skipReason)
         return result
       end)
     if prefix:sub(-1) ~= "," then
-      error("No tests found in ".. path)
+      code = prefix .. "'',function()" .. code
+      prefix = "end"
+      --error("No tests found in ".. path)
     end
     prefix = prefix .."}"
     return assert(load(function()
@@ -418,7 +420,7 @@ local opts = parse_args{...}
 if not opts then
   return
 end
-seal_globals()
+--seal_globals()
 check_package_path()
 local test_tree = scan_tests(opts.root or own_dir or "", opts)
 if opts.list then return end

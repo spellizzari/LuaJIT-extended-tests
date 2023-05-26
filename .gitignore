@@ -1,0 +1,16 @@
+*.[oa]
+*.so
+*.obj
+*.lib
+*.exp
+*.dll
+*.exe
+*.manifest
+*.dmp
+*.swp
+.tags
+.vs/
+bin/
+obj/
+*.user
+discovery.txt

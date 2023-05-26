@@ -1,0 +1,38 @@
+fori_coerce.lua
+stack_purge.lua
+hook_line.lua
+debug_gc.lua
+hook_top.lua
+loop_unroll.lua
+gc_trace.lua
+hook_record.lua
+lightud.lua
+coro_yield.lua
+recurse_deep.lua
+uclo.lua
+dualnum.lua
+wbarrier_jit.lua +jit
+hook_active.lua
+api_call.lua
+parse_misc.lua
+gcstep.lua
+gc_rechain.lua
+parse_esc.lua
+coro_traceback.lua
+for_dir.lua
+tcall_base.lua
+parse_comp.lua
+wbarrier.lua
+tonumber_scan.lua
+catch_wrap.lua
+unordered_jit.lua +jit
+wbarrier_obar.lua
+stack_gc.lua
+stackovc.lua
+recurse_tail.lua
+tcall_loop.lua
+hook_norecord.lua
+alias_alloc.lua
+phi_conv.lua
+jit_flush.lua +jit
+stackov.lua

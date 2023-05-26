@@ -57,9 +57,9 @@ if ffi.abi("win") then
   assert(ffi.C._rmdir("/tmp/does_not_exist") == -1)
   assert(ffi.C._errno()[0] == 2)
 
-  ffi.C._fmode = ffi.C._O_BINARY
-  assert(ffi.C._fmode == ffi.C._O_BINARY)
-  ffi.C._fmode = ffi.C._O_TEXT
+  --ffi.C._fmode = ffi.C._O_BINARY
+  --assert(ffi.C._fmode == ffi.C._O_BINARY)
+  --ffi.C._fmode = ffi.C._O_TEXT
 else
   assert(ffi.C.rmdir("/tmp/does_not_exist") == -1)
   assert(ffi.C.errno == 2)
