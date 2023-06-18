@@ -107,7 +107,7 @@ do --- os
 end
 
 do --- debug
-  check(debug, "debug:gethook:getinfo:getlocal:getmetatable:getregistry:getupvalue:sethook:setlocal:setmetatable:setupvalue:traceback", "getfenv:setfenv:upvalueid:upvaluejoin:getuservalue:setuservalue")
+  check(debug, "debug:gethook:getinfo:getlocal:getmetatable:getregistry:getupvalue:printbc:sethook:setlocal:setmetatable:setupvalue:traceback", "getfenv:setfenv:upvalueid:upvaluejoin:getuservalue:setuservalue")
 end
 
 -- TODO: Check versional differences in debug library

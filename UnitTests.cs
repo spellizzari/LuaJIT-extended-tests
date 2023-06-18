@@ -35,10 +35,9 @@ namespace tests
             Console.WriteLine();
 
             // Handle overflow option.
-            string? tempFilePath = null;
             if ((options & TestOptions.WithOverflow) != 0)
             {
-                tempFilePath = Path.GetTempFileName();
+                string tempFilePath = Path.GetTempFileName() + ".lua";
                 using var writer = File.CreateText(tempFilePath);
                 writer.Write("local __overflow={");
                 for (int i = 0; i < (1 << 17); i++)
@@ -48,21 +47,13 @@ namespace tests
                 testFilePath = tempFilePath;
             }
 
-            try
-            {
-                int exitCode = RunLuaJIT(
-                    luaJitExePath,
-                    $"\"{Path.Combine(TestsDirPath, "test", "test.lua")}\" {RunnerFlags} \"{testFilePath}\"",
-                    Path.Combine(TestsDirPath, "test"));
+            int exitCode = RunLuaJIT(
+                luaJitExePath,
+                $"\"{Path.Combine(TestsDirPath, "test", "test.lua")}\" {RunnerFlags} \"{testFilePath}\"",
+                Path.Combine(TestsDirPath, "test"));
 
-                if (exitCode != 0)
-                    Assert.Fail("Test failed.");
-            }
-            finally
-            {
-                if (tempFilePath is not null)
-                    File.Delete(tempFilePath);
-            }
+            if (exitCode != 0)
+                Assert.Fail("Test failed.");
         }
 
         // Enumerates test cases using test.lua.
@@ -115,7 +106,7 @@ namespace tests
             static TestCaseData MakeTestCaseData(string testFilePath, TestOptions opts, bool skipped, string skipReason)
             {
                 var relPath = Path.GetRelativePath(TestsDirPath, testFilePath);
-                
+
                 var testName = new StringBuilder();
                 if (opts != TestOptions.None)
                     testName.Append(opts.ToString() + ".");

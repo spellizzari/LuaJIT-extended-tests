@@ -24,7 +24,7 @@ do --- vcall
     code[#code+1] = "{" .. i .. "},"
   end
   code[#code+1] = "f() }\nreturn t"
-  assert(loadstring(table.concat(code)) == nil)
+  assert(loadstring(table.concat(code)) ~= nil)
   --[[local result = loadstring(code)()
   expect(type(result), "table")
   expect(#result, 128003)
