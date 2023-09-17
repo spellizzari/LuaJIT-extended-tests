@@ -3,6 +3,7 @@ using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -34,22 +35,21 @@ namespace tests
 
             Console.WriteLine();
 
+            var opts = new StringBuilder();
+            opts.Append($"\"{Path.Combine(TestsDirPath, "test", "test.lua")}\" ");
+            opts.Append($"{RunnerFlags} ");
+
             // Handle overflow option.
             if ((options & TestOptions.WithOverflow) != 0)
             {
-                string tempFilePath = Path.GetTempFileName() + ".lua";
-                using var writer = File.CreateText(tempFilePath);
-                writer.Write("local __overflow={");
-                for (int i = 0; i < (1 << 17); i++)
-                    writer.Write("{},");
-                writer.Write("};");
-                writer.Write(File.ReadAllText(testFilePath));
-                testFilePath = tempFilePath;
+                opts.Append($"--cstoverflow cstoverflow.lua ");
             }
+
+            opts.Append($"\"{testFilePath}\"");
 
             int exitCode = RunLuaJIT(
                 luaJitExePath,
-                $"\"{Path.Combine(TestsDirPath, "test", "test.lua")}\" {RunnerFlags} \"{testFilePath}\"",
+                opts.ToString(),
                 Path.Combine(TestsDirPath, "test"));
 
             if (exitCode != 0)
@@ -59,6 +59,14 @@ namespace tests
         // Enumerates test cases using test.lua.
         private static IEnumerable<TestCaseData> EnumerateTests()
         {
+            // Generate overflow code preamble.
+            var sb = new StringBuilder();
+            sb.Append("local __overflow={");
+            for (int i = 0; i < (1 << 17); i++)
+                sb.Append("{},");
+            sb.Append("};");
+            File.WriteAllText(Path.Combine(TestsDirPath, "test", "cstoverflow.lua"), sb.ToString());
+
             // Run test.lua to discover runnable tests.
             var process = Process.Start(new ProcessStartInfo
             {

@@ -100,6 +100,7 @@ local function parse_args(t)
   local opts = {
     tags = default_tags(),
     want_meta = want_meta,
+    testPreamble = ''
   }
   local result = opts
   
@@ -125,6 +126,12 @@ local function parse_args(t)
       arg, joinedval = arg:match"^([^=]+)(=?.*)$"
       if arg == "--quiet" then
         opts.quiet = true
+      elseif arg == "--cstoverflow" then
+        local path = flagval()
+        local f = assert(io_open(path, "rb"))
+        local contents = f:read"*a"
+        f:close()
+        opts.testPreamble = contents
       elseif arg == "--shuffle" then
         local seed = tonumber(flagval())
         if not seed then error("Expected numeric seed after --shuffle") end
@@ -201,7 +208,7 @@ local function scan_tests(path, opts, skip, skipReason)
             return marker .. info
           end
         end
-        local result = ("%s%q,function()"):format(prefix, info)
+        local result = ("%s%q,function() %s"):format(prefix, info, opts.testPreamble)
         prefix = ","
         if info:find" !lex" and not opts:want_meta(info:sub((info:find" +[-+@!]"))) then
           result = result .."end--[========["
@@ -210,7 +217,7 @@ local function scan_tests(path, opts, skip, skipReason)
         return result
       end)
     if prefix:sub(-1) ~= "," then
-      code = prefix .. "'',function()" .. code
+      code = prefix .. "'',function() " .. opts.testPreamble .. code
       prefix = "end"
       --error("No tests found in ".. path)
     end
