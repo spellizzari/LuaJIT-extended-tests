@@ -52,8 +52,7 @@ namespace tests
                 opts.ToString(),
                 Path.Combine(TestsDirPath, "test"));
 
-            if (exitCode != 0)
-                Assert.Fail("Test failed.");
+            Assert.That(exitCode, Is.EqualTo(0), "Test failed.");
         }
 
         // Enumerates test cases using test.lua.

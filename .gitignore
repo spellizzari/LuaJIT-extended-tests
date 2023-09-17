@@ -14,3 +14,4 @@ bin/
 obj/
 *.user
 discovery.txt
+/test/bcdump.txt
