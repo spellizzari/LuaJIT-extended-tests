@@ -7,3 +7,4 @@ misc
 opt +jit
 trace +jit
 opt +jit
+dynamic

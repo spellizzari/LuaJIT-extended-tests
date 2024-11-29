@@ -1,11 +1,10 @@
 //#define USE_ORIG
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace tests
 {
@@ -28,6 +27,27 @@ namespace tests
         private static string TestsDirPath => Path.Combine(SolutionDirPath, "tests");
         private static string LuaJitExePath => Path.Combine(SolutionDirPath, LuaJitDirPath, "luajit.exe");
 
+        // Functions that generate some test code dynamically.
+        private static readonly (string FileName, Action<StreamWriter> Generate)[] DynamicTestCodeGenerators = new (string, Action<StreamWriter>)[]
+        {
+            ("cstoverflow.lua",
+            writer =>
+            {
+                writer.Write("local __overflow={");
+                for (int i = 0; i < (1 << 17); i++)
+                    writer.Write("{},");
+                writer.Write("};");
+            }),
+            ("toomanybcinstructions.lua",
+            writer =>
+            {
+                writer.WriteLine("local a=0");
+                for (int i = 0; i < (1 << 27); i++)
+                    writer.WriteLine("a=a+1");
+                writer.WriteLine("print(a)");
+            }),
+        };
+
         [TestCaseSource(nameof(EnumerateTests))]
         public void RunTest(string testFilePath, TestOptions options)
         {
@@ -42,7 +62,7 @@ namespace tests
             // Handle overflow option.
             if ((options & TestOptions.WithOverflow) != 0)
             {
-                opts.Append($"--cstoverflow cstoverflow.lua ");
+                opts.Append($"--cstoverflow dynamic\\cstoverflow.lua ");
             }
 
             opts.Append($"\"{testFilePath}\"");
@@ -58,13 +78,13 @@ namespace tests
         // Enumerates test cases using test.lua.
         private static IEnumerable<TestCaseData> EnumerateTests()
         {
-            // Generate overflow code preamble.
-            var sb = new StringBuilder();
-            sb.Append("local __overflow={");
-            for (int i = 0; i < (1 << 17); i++)
-                sb.Append("{},");
-            sb.Append("};");
-            File.WriteAllText(Path.Combine(TestsDirPath, "test", "cstoverflow.lua"), sb.ToString());
+            // Generate dynamic code.
+            foreach (var generator in DynamicTestCodeGenerators)
+            {
+                string path = Path.Combine(TestsDirPath, "test", "dynamic", generator.FileName);
+                using var writer = File.CreateText(path);
+                generator.Generate(writer);
+            }
 
             // Run test.lua to discover runnable tests.
             var process = Process.Start(new ProcessStartInfo
@@ -132,13 +152,14 @@ namespace tests
 
         private static int RunLuaJIT(string luaJitExePath, string arguments, string workingDirectory)
         {
-            /*return
+#if DEBUG
+            return
                 Debugger.IsAttached
                 ? RunLuaJITInProcess(luaJitExePath, arguments, workingDirectory)
                 : RunLuaJITOutOfProcess(luaJitExePath, arguments, workingDirectory);
-            /*/
+#else
             return RunLuaJITOutOfProcess(luaJitExePath, arguments, workingDirectory);
-            //*/
+#endif
         }
 
         private static int RunLuaJITInProcess(string luaJitExePath, string arguments, string workingDirectory)
